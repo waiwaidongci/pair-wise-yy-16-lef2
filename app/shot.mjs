@@ -1,0 +1,17 @@
+import { chromium } from 'playwright'
+import { spawn } from 'node:child_process'
+const server = spawn('npx', ['vite', 'preview', '--port', '4173', '--host', '127.0.0.1'], { cwd: '/workspace/app', stdio: 'pipe' })
+await new Promise((res) => server.stdout.on('data', (d) => String(d).includes('Local:') && res()))
+const browser = await chromium.launch()
+const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+await page.goto('http://127.0.0.1:4173', { waitUntil: 'networkidle' })
+await page.locator('.proof-card[data-photo-id="portrait-01"] .mark-btn-selected').click()
+await page.locator('.proof-card[data-photo-id="portrait-02"] .mark-btn-review').click()
+await page.screenshot({ path: '/tmp/shot_wall.png' })
+await page.locator('.tab', { hasText: '逐张复核' }).click()
+await page.setViewportSize({ width: 390, height: 844 })
+await page.waitForTimeout(400)
+await page.screenshot({ path: '/tmp/shot_review_mobile.png' })
+await page.locator('.tab', { hasText: '成套留痕' }).click()
+await page.screenshot({ path: '/tmp/shot_locks_mobile.png' })
+await browser.close(); server.kill()
